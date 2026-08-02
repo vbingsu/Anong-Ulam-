@@ -1,37 +1,56 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
-// Temporary hardcoded list — this will come from your Supabase
-// ingredients table once that's connected. For now, mock data lets
-// us build and test the UI without waiting on the database.
-const COMMON_INGREDIENTS = [
-  "Chicken", "Rice", "Eggs", "Garlic", "Onion",
-  "Soy Sauce", "Cooking Oil", "Pork", "Tomato", "Potato",
-];
+type Ingredient = {
+  id: number;
+  name: string;
+  unit: string;
+  price: number;
+};
 
 export default function Home() {
   const [budget, setBudget] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [haveIngredients, setHaveIngredients] = useState<string[]>([]);
+  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchIngredients() {
+      const { data, error } = await supabase
+        .from("ingredients")
+        .select("*")
+        .order("name");
+
+      if (error) {
+        console.error("Error fetching ingredients:", error.message);
+      } else {
+        setIngredients(data);
+      }
+      setLoading(false);
+    }
+
+    fetchIngredients();
+  }, []);
 
   function toggleIngredient(name: string) {
     setHaveIngredients((prev) =>
       prev.includes(name)
-        ? prev.filter((item) => item !== name) // already selected -> remove it
-        : [...prev, name]                       // not selected -> add it
+        ? prev.filter((item) => item !== name)
+        : [...prev, name]
     );
   }
 
-  const filteredCommon = COMMON_INGREDIENTS.filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredIngredients = ingredients.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <main className="max-w-xl mx-auto p-6 space-y-6">
       <h1 className="text-2xl font-bold">Anong Ulam?</h1>
 
-      {/* Budget input */}
       <div>
         <label className="block font-medium mb-1">Your budget (₱)</label>
         <input
@@ -43,7 +62,6 @@ export default function Home() {
         />
       </div>
 
-      {/* Search bar */}
       <div>
         <label className="block font-medium mb-1">Search ingredients</label>
         <input
@@ -55,30 +73,32 @@ export default function Home() {
         />
       </div>
 
-      {/* Quick-tap common ingredients */}
       <div>
         <p className="font-medium mb-2">Tap what you already have:</p>
-        <div className="flex flex-wrap gap-2">
-          {filteredCommon.map((item) => {
-            const isSelected = haveIngredients.includes(item);
-            return (
-              <button
-                key={item}
-                onClick={() => toggleIngredient(item)}
-                className={`px-3 py-1 rounded-full border text-sm ${
-                  isSelected
-                    ? "bg-green-600 text-white border-green-600"
-                    : "bg-white text-gray-700 border-gray-300"
-                }`}
-              >
-                {item}
-              </button>
-            );
-          })}
-        </div>
+        {loading ? (
+          <p className="text-sm text-gray-500">Loading ingredients...</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {filteredIngredients.map((item) => {
+              const isSelected = haveIngredients.includes(item.name);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => toggleIngredient(item.name)}
+                  className={`px-3 py-1 rounded-full border text-sm ${
+                    isSelected
+                      ? "bg-green-600 text-white border-green-600"
+                      : "bg-white text-gray-700 border-gray-300"
+                  }`}
+                >
+                  {item.name} (₱{item.price}/{item.unit})
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Selected summary */}
       {haveIngredients.length > 0 && (
         <div className="text-sm text-gray-600">
           You have: {haveIngredients.join(", ")}
