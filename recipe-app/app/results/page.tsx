@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { moreSugar, poppins } from "../fonts";
-import { Users, Clock } from "lucide-react";
+import { poppins } from "../fonts";
+import { Users, Clock, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { calculateIngredientCost } from "@/lib/pricing";
 
@@ -21,8 +21,11 @@ export default function Results() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const budget = Number(searchParams.get("budget") || 0);
-  const servings = Number(searchParams.get("servings") || 1);
+  const rawBudget = Number(searchParams.get("budget"));
+  const budget = !isNaN(rawBudget) && rawBudget >= 0 ? rawBudget : 0;
+
+  const rawServings = Number(searchParams.get("servings"));
+  const servings = !isNaN(rawServings) && rawServings >= 1 ? Math.floor(rawServings) : 1;
   const haveIngredients = (searchParams.get("have") || "")
     .split(",")
     .filter(Boolean);
@@ -91,34 +94,41 @@ export default function Results() {
   }, [budget, servings, haveIngredients]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-300 py-6">
+    <main className="min-h-dvh flex items-start justify-center bg-neutral-200 sm:bg-neutral-300 sm:py-6">
       <div
-        className="relative overflow-hidden shadow-2xl rounded-[2.5rem]"
-        style={{ width: "390px", minHeight: "844px", backgroundColor: "#5C6B3D" }}
+        className="w-full sm:max-w-[420px] min-h-dvh sm:min-h-[844px] flex flex-col sm:rounded-[2.5rem] shadow-2xl overflow-hidden relative"
+        style={{ backgroundColor: "#5C6B3D" }}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-6 pb-4">
-          <button onClick={() => router.push("/")} className={`text-2xl text-[#F5EFE0]`}>
-            ←
+        {/* Sticky Header */}
+        <header
+          className="sticky top-0 z-20 px-4 sm:px-5 pt-5 pb-3.5 flex items-center gap-3 backdrop-blur-md shadow-sm"
+          style={{ backgroundColor: "rgba(92, 107, 61, 0.96)" }}
+        >
+          <button
+            onClick={() => router.push("/")}
+            className="p-1.5 rounded-full text-[#F5EFE0] hover:bg-white/10 active:scale-90 transition-all cursor-pointer"
+            aria-label="Back to home"
+          >
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
-            <p className={`text-xl font-semibold ${poppins.className}`} style={{ color: "#F5EFE0" }}>
+            <h1 className={`text-lg sm:text-xl font-semibold ${poppins.className}`} style={{ color: "#F5EFE0" }}>
               Here&apos;s what you can cook
-            </p>
-            <p className={`text-sm`} style={{ color: "#D8CFC0" }}>
+            </h1>
+            <p className="text-xs sm:text-sm" style={{ color: "#D8CFC0" }}>
               {loading
                 ? "Finding recipes..."
                 : `${results.length} recipe${results.length !== 1 ? "s" : ""} fit your ₱${budget} budget`}
             </p>
           </div>
-        </div>
+        </header>
 
-        <p className={`text-sm px-5 pb-4 text-justify`} style={{ color: "#B8C29A" }}>
+        <p className="text-xs sm:text-sm px-5 pt-2 pb-3 text-justify leading-relaxed" style={{ color: "#D4DEBC" }}>
           Common pantry items (cooking oil, soy sauce, vinegar, salt, and pepper) are assumed available and are not included in the final cost.
         </p>
 
         {/* Recipe cards */}
-        <div className="px-4 pb-8 space-y-3">
+        <div className="flex-1 px-4 pb-8 space-y-3">
           {loading ? (
             <p className={`text-sm text-white/80 px-2`}>Loading...</p>
           ) : results.length === 0 ? (
@@ -144,7 +154,7 @@ export default function Results() {
                   </div>
                   <div className="text-right">
                     <p className={`text-xs`} style={{ color: "#7A6A56" }}>
-                      cook for
+                      Estimated cost:
                     </p>
                     <p className={`text-lg font-bold`} style={{ color: "#C1603A" }}>
                       ₱{recipe.costToCook.toFixed(2)}
@@ -185,6 +195,6 @@ export default function Results() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

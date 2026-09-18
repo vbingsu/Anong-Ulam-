@@ -24,27 +24,81 @@ def update_supabase_prices(df: pd.DataFrame, da_reported_date: str | None):
         ingredient_name = row["Commodity"]
         price = row["final_price"]
 
+        # Skip ingredients with no usable price from DA.
         if pd.isna(price):
             print(f"Skipping {ingredient_name} — no price data.")
             skipped_count += 1
             continue
 
-        result = (
-            supabase.table("ingredients")
-            .update({
-                "price": round(float(price), 2),
+        new_price = round(float(price), 2)
+
+        try:
+            # Get the existing ingredient so we can preserve its current
+            # price as previous_price before replacing it.
+            existing = (
+                supabase.table("ingredients")
+                .select("id, price, da_reported_date")
+                .eq("name", ingredient_name)
+                .limit(1)
+                .execute()
+            )
+
+            if not existing.data:
+                print(
+                    f"⚠ No matching ingredient found in Supabase for: "
+                    f"{ingredient_name}"
+                )
+                skipped_count += 1
+                continue
+
+            ingredient = existing.data[0]
+            old_price = ingredient["price"]
+            old_da_date = ingredient["da_reported_date"]
+
+            # Prevent the same DA report from shifting the price again
+            # if the scraper is accidentally run more than once.
+            if da_reported_date and old_da_date == da_reported_date:
+                print(
+                    f"Skipping {ingredient_name} — "
+                    f"DA report {da_reported_date} is already recorded."
+                )
+                skipped_count += 1
+                continue
+
+            update_data = {
+                "price": new_price,
+                "previous_price": old_price,
+                "previous_price_date": old_da_date,
                 "last_updated": datetime.now().isoformat(),
                 "da_reported_date": da_reported_date,
-            })
-            .eq("name", ingredient_name)
-            .execute()
-        )
+            }
 
-        if not result.data:
-            print(f"⚠ No matching ingredient found in Supabase for: {ingredient_name}")
-        else:
-            print(f"Updated {ingredient_name}: ₱{price}")
-            updated_count += 1
+            result = (
+                supabase.table("ingredients")
+                .update(update_data)
+                .eq("id", ingredient["id"])
+                .execute()
+            )
+
+            if not result.data:
+                print(f"⚠ Failed to update Supabase for: {ingredient_name}")
+                skipped_count += 1
+            else:
+                if old_price is None:
+                    print(
+                        f"Updated {ingredient_name}: "
+                        f"₱{new_price} (no previous price)"
+                    )
+                else:
+                    print(
+                        f"Updated {ingredient_name}: "
+                        f"₱{old_price} → ₱{new_price}"
+                    )
+                updated_count += 1
+
+        except Exception as e:
+            print(f"⚠ Failed to update {ingredient_name}: {e}")
+            skipped_count += 1
 
     print(f"\nDone. {updated_count} updated, {skipped_count} skipped.")
 

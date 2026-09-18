@@ -5,13 +5,17 @@ export function calculateIngredientCost(
   pieceWeightKg: number | null,
   servings: number
 ): number {
+  const safePrice = Number(price) || 0;
+  const safeQty = Number(quantity) || 0;
+  const safeServings = Math.max(1, Number(servings) || 1);
   let result: number;
 
   if (unit === "piece" && pieceWeightKg) {
-    result = price * quantity * pieceWeightKg * servings;
+    result = safePrice * safeQty * (Number(pieceWeightKg) || 0) * safeServings;
   } else {
-    result = price * quantity * servings;
+    result = safePrice * safeQty * safeServings;
   }
 
-  return Math.round(result * 100) / 100;
+  const rounded = Math.round(result * 100) / 100;
+  return isNaN(rounded) ? 0 : rounded;
 }

@@ -33,7 +33,8 @@ export default function RecipeDetail() {
   const router = useRouter();
 
   const recipeId = params.id as string;
-  const servings = Number(searchParams.get("servings") || 1);
+  const rawServings = Number(searchParams.get("servings"));
+  const servings = !isNaN(rawServings) && rawServings >= 1 ? Math.floor(rawServings) : 1;
   const haveIngredients = (searchParams.get("have") || "")
     .split(",")
     .filter(Boolean);

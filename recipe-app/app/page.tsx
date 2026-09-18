@@ -102,8 +102,14 @@ export default function Home() {
                 <PhilippinePeso className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
+                  inputMode="decimal"
                   value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "" || /^\d*(\.\d{0,2})?$/.test(val)) {
+                      setBudget(val);
+                    }
+                  }}
                   placeholder="150"
                   className="w-full rounded-full pl-10 pr-4 py-3 outline-none"
                   style={{ backgroundColor: "#F5FBE8" }}
@@ -117,9 +123,15 @@ export default function Home() {
               </label>
               <input
                 type="text"
-                min="1"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={servings}
-                onChange={(e) => setServings(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "" || /^\d*$/.test(val)) {
+                    setServings(val);
+                  }
+                }}
                 placeholder="1"
                 className="w-full rounded-full px-4 py-3 outline-none text-center"
                 style={{ backgroundColor: "#F5FBE8" }}
