@@ -3,7 +3,7 @@ import { geistSans, geistMono } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Olam: budget meals, Malolos prices",
+  title: "Anong Ulam?: budget meals, Malolos prices",
   description: "Find out what to cook based on your budget and what's in your fridge.",
 };
 

@@ -17,6 +17,87 @@ type RecipeResult = {
   costToCook: number;
 };
 
+function RecipeCard({
+  recipe,
+  servings,
+  haveIngredients,
+  budget,
+  dimmed = false,
+}: {
+  recipe: RecipeResult;
+  servings: number;
+  haveIngredients: string[];
+  budget: number;
+  dimmed?: boolean;
+}) {
+  const shortfall = recipe.costToCook - budget;
+
+  return (
+    <div
+      className="rounded-2xl p-4"
+      style={{ backgroundColor: "#F5EFE0", color: "#3D2E1F", opacity: dimmed ? 0.7 : 1 }}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <div>
+          <p className={`font-semibold text-lg`}>{recipe.name}</p>
+          <p className={`text-sm flex items-center gap-1`} style={{ color: "#7A6A56" }}>
+            <Clock className="w-3.5 h-3.5" />
+            {recipe.prep_time && <span>{recipe.prep_time} ·</span>}
+            <Users className="w-3.5 h-3.5" />
+            {servings}
+          </p>
+        </div>
+        <div className="text-right">
+          <p className={`text-xs`} style={{ color: "#7A6A56" }}>
+            Estimated cost:
+          </p>
+          <p className={`text-lg font-bold`} style={{ color: "#C1603A" }}>
+            ₱{recipe.costToCook.toFixed(2)}
+          </p>
+          {dimmed && shortfall > 0 && (
+            <p className={`text-xs`} style={{ color: "#B5745C" }}>
+              ₱{shortfall.toFixed(2)} short
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {recipe.haveList.map((name) => (
+          <span
+            key={name}
+            className={`text-xs px-2.5 py-1 rounded-full`}
+            style={{ backgroundColor: "#5C6B3D", color: "#F5EFE0" }}
+          >
+            ✓ {name}
+          </span>
+        ))}
+        {recipe.missingList.map((item) => (
+          <span
+            key={item.name}
+            className={`text-xs px-2.5 py-1 rounded-full border`}
+            style={{ borderColor: "#B5A98F", color: "#7A6A56" }}
+          >
+            + {item.name}
+          </span>
+        ))}
+      </div>
+
+      <Link
+        href={`/recipes/${recipe.id}?have=${encodeURIComponent(haveIngredients.join(","))}&servings=${servings}`}
+        className={`w-full block text-center rounded-full py-2 text-sm font-semibold`}
+        style={
+          dimmed
+            ? { backgroundColor: "transparent", border: "1px solid #C1603A", color: "#C1603A" }
+            : { backgroundColor: "#C1603A", color: "#F5EFE0" }
+        }
+      >
+        View recipe
+      </Link>
+    </div>
+  );
+}
+
 export default function Results() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -30,7 +111,8 @@ export default function Results() {
     .split(",")
     .filter(Boolean);
 
-  const [results, setResults] = useState<RecipeResult[]>([]);
+  const [affordable, setAffordable] = useState<RecipeResult[]>([]);
+  const [closeCalls, setCloseCalls] = useState<RecipeResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -86,7 +168,12 @@ export default function Results() {
         .filter((r) => r.costToCook <= budget)
         .sort((a, b) => a.costToCook - b.costToCook);
 
-      setResults(withinBudget);
+      const overBudget = matched
+        .filter((r) => r.costToCook > budget)
+        .sort((a, b) => a.costToCook - b.costToCook);
+
+      setAffordable(withinBudget);
+      setCloseCalls(overBudget);
       setLoading(false);
     }
 
@@ -118,7 +205,7 @@ export default function Results() {
             <p className="text-xs sm:text-sm" style={{ color: "#D8CFC0" }}>
               {loading
                 ? "Finding recipes..."
-                : `${results.length} recipe${results.length !== 1 ? "s" : ""} fit your ₱${budget} budget`}
+                : `${affordable.length} recipe${affordable.length !== 1 ? "s" : ""} fit your ₱${budget} budget`}
             </p>
           </div>
         </header>
@@ -131,67 +218,40 @@ export default function Results() {
         <div className="flex-1 px-4 pb-8 space-y-3">
           {loading ? (
             <p className={`text-sm text-white/80 px-2`}>Loading...</p>
-          ) : results.length === 0 ? (
+          ) : affordable.length === 0 && closeCalls.length === 0 ? (
             <p className={`text-sm text-white/80 px-2`}>
               No recipes fit that budget with your current ingredients yet — try raising your budget or adding more ingredients you have.
             </p>
           ) : (
-            results.map((recipe) => (
-              <div
-                key={recipe.id}
-                className="rounded-2xl p-4"
-                style={{ backgroundColor: "#F5EFE0", color: "#3D2E1F" }}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className={`font-semibold text-lg`}>{recipe.name}</p>
-                    <p className={`text-sm flex items-center gap-1`} style={{ color: "#7A6A56" }}>
-                      <Clock className="w-3.5 h-3.5" />
-                      {recipe.prep_time && <span>{recipe.prep_time} ·</span>}
-                      <Users className="w-3.5 h-3.5" />
-                      {servings}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className={`text-xs`} style={{ color: "#7A6A56" }}>
-                      Estimated cost:
-                    </p>
-                    <p className={`text-lg font-bold`} style={{ color: "#C1603A" }}>
-                      ₱{recipe.costToCook.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
+            <>
+              {affordable.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  servings={servings}
+                  haveIngredients={haveIngredients}
+                  budget={budget}
+                />
+              ))}
 
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {recipe.haveList.map((name) => (
-                    <span
-                      key={name}
-                      className={`text-xs px-2.5 py-1 rounded-full`}
-                      style={{ backgroundColor: "#5C6B3D", color: "#F5EFE0" }}
-                    >
-                      ✓ {name}
-                    </span>
+              {closeCalls.length > 0 && (
+                <>
+                  <p className={`text-xs ${poppins.className} px-1 pt-2`} style={{ color: "#D4DEBC" }}>
+                    A little out of reach for now
+                  </p>
+                  {closeCalls.map((recipe) => (
+                    <RecipeCard
+                      key={recipe.id}
+                      recipe={recipe}
+                      servings={servings}
+                      haveIngredients={haveIngredients}
+                      budget={budget}
+                      dimmed
+                    />
                   ))}
-                  {recipe.missingList.map((item) => (
-                    <span
-                      key={item.name}
-                      className={`text-xs px-2.5 py-1 rounded-full border`}
-                      style={{ borderColor: "#B5A98F", color: "#7A6A56" }}
-                    >
-                      + {item.name}
-                    </span>
-                  ))}
-                </div>
-
-                <Link
-                  href={`/recipes/${recipe.id}?have=${encodeURIComponent(haveIngredients.join(","))}&servings=${servings}`}
-                  className={`w-full block text-center rounded-full py-2 text-sm font-semibold`}
-                  style={{ backgroundColor: "#C1603A", color: "#F5EFE0" }}
-                >
-                  View recipe
-                </Link>
-              </div>
-            ))
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
