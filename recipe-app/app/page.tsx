@@ -66,13 +66,52 @@ export default function Home() {
   const haveText = haveIngredients.join(", ");
 
   return (
-    <main className="min-h-dvh flex items-start justify-center bg-neutral-200 sm:bg-neutral-300 sm:py-6">
+    <main
+      className="min-h-dvh flex items-center justify-center bg-[#E7E0D0] lg:h-dvh lg:p-0 lg:overflow-hidden"
+      style={{ backgroundColor: "#E7E0D0" }}
+    >
       <div
-        className="w-full sm:max-w-[420px] min-h-dvh sm:min-h-[844px] flex flex-col sm:rounded-[2.5rem] shadow-2xl relative"
+        className="w-full sm:max-w-[420px] min-h-dvh sm:min-h-[844px] flex flex-col relative overflow-hidden shadow-2xl lg:max-w-none lg:min-h-0 lg:h-dvh lg:shadow-none lg:grid lg:grid-cols-[0.75fr_1.25fr] lg:rounded-none"
         style={{ backgroundColor: "#F5EFE0" }}
       >
-        {/* Header — same title-then-logo order and centering as before */}
-        <header className="flex-shrink-0 text-center pt-16 sm:pt-10 sm:pb-6 px-6">
+        {/* Desktop brand panel — now cream, matching the mobile header's palette */}
+        <aside
+          className="hidden lg:flex flex-col justify-between p-12 xl:p-14 lg:shadow-[4px_0_16px_rgba(0,0,0,0.08)] lg:relative z-10"
+          style={{ backgroundColor: "#F5EFE0" }}
+        >
+          <div>
+            <Image
+              src="/logo.svg"
+              alt="Anong Ulam logo"
+              width={150}
+              height={150}
+              unoptimized
+              className="mb-7"
+            />
+            <h1
+              className={`text-6xl xl:text-7xl font-bold leading-[0.95] ${moreSugar.className}`}
+              style={{ color: "#3D2E1F" }}
+            >
+              Anong
+              <br />
+              Ulam?
+            </h1>
+            <div className="w-16 h-1 rounded-full my-8" style={{ backgroundColor: "#C1603A" }} />
+            <p className={`max-w-md text-xl leading-relaxed ${poppins.className}`} style={{ color: "#7A6A56" }}>
+              Find something affordable, filling, and delicious with whatever budget and ingredients you have.
+            </p>
+          </div>
+
+          <div className={`text-sm leading-relaxed ${poppins.className}`} style={{ color: "#9C8E77" }}>
+            <p className="font-medium" style={{ color: "#3D2E1F" }}>
+              Budget-friendly meals, made simple.
+            </p>
+            <p className="mt-1">Start with your budget. We&apos;ll handle the ulam.</p>
+          </div>
+        </aside>
+
+        {/* Mobile header */}
+        <header className="flex-shrink-0 text-center pt-16 sm:pt-10 sm:pb-6 px-6 lg:hidden">
           <h1 className={`text-5xl font-bold mb-2 ${moreSugar.className}`} style={{ color: "#3d2e1f" }}>
             Anong Ulam?
           </h1>
@@ -86,13 +125,22 @@ export default function Home() {
           />
         </header>
 
-        {/* Green sheet — flex-1 fills remaining space */}
+        {/* Form / ingredient area */}
         <section
-          className="flex-1 flex flex-col rounded-t-[2.5rem] px-6 pt-8 pb-6 overflow-hidden min-h-0"
+          className="flex-1 flex flex-col rounded-t-[2.5rem] px-6 pt-8 pb-6 overflow-hidden min-h-0 lg:rounded-none lg:px-10 xl:px-14 lg:pt-12 lg:pb-12 lg:h-full"
           style={{ backgroundColor: "#5C6B3D" }}
         >
-          <div className="flex-shrink-0 flex gap-3 mb-4">
-            <div className="flex-1">
+          <div className="hidden lg:block flex-shrink-0 mb-8">
+            <p className={`text-sm uppercase tracking-[0.16em] font-semibold ${poppins.className}`} style={{ color: "#E4EACF" }}>
+              Let&apos;s find your ulam
+            </p>
+            <h2 className={`text-3xl xl:text-4xl font-semibold mt-2 ${poppins.className}`} style={{ color: "#F5FBE8" }}>
+              What are we working with?
+            </h2>
+          </div>
+
+          <div className="flex-shrink-0 grid grid-cols-[1fr_6rem] gap-3 mb-5 lg:grid-cols-2 lg:gap-5 lg:mb-8">
+            <div>
               <label className={`block text-white ${poppins.className} font-medium mb-2 pl-1`}>
                 My Budget
               </label>
@@ -109,13 +157,13 @@ export default function Home() {
                     }
                   }}
                   placeholder="150"
-                  className="w-full rounded-full pl-10 pr-4 py-3 outline-none"
+                  className={`w-full rounded-xl lg:rounded-2xl pl-10 pr-4 py-3.5 outline-none ${poppins.className}`}
                   style={{ backgroundColor: "#F5FBE8" }}
                 />
               </div>
             </div>
 
-            <div className="w-24">
+            <div>
               <label className={`block text-white ${poppins.className} font-medium mb-2 pl-1`}>
                 People
               </label>
@@ -131,60 +179,67 @@ export default function Home() {
                   }
                 }}
                 placeholder="1"
-                className="w-full rounded-full px-4 py-3 outline-none text-center"
+                className={`w-full rounded-xl lg:rounded-2xl px-4 py-3.5 outline-none text-center ${poppins.className}`}
                 style={{ backgroundColor: "#F5FBE8" }}
               />
             </div>
           </div>
 
-          <div className="flex-shrink-0 mb-4">
-            <label className={`block text-white font-medium mb-2 ${poppins.className} pl-1`}>
-              Ingredients I Already Have
-            </label>
+          <div className="flex-shrink-0 mb-4 lg:mb-5">
+            <div className="flex items-end justify-between mb-2">
+              <label className={`block text-white font-medium ${poppins.className} pl-1`}>
+                Ingredients I Already Have
+              </label>
+              <span className={`hidden lg:block text-xs ${poppins.className}`} style={{ color: "rgba(245,251,232,0.65)" }}>
+                Select all that apply
+              </span>
+            </div>
             <div className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="search ingredients..."
-                className="w-full rounded-full pl-10 pr-4 py-3 outline-none"
+                placeholder="Search ingredients..."
+                className={`w-full rounded-xl lg:rounded-2xl pl-10 pr-4 py-3.5 outline-none ${poppins.className}`}
                 style={{ backgroundColor: "#F5FBE8" }}
               />
             </div>
           </div>
 
-          {/* Scrollable ingredients box — the ONLY scrollable area on this page */}
+          {/* Scrollable ingredients area — the only thing that scrolls */}
           <div
-            className="h-38 overflow-y-auto rounded-2xl p-3 mb-4 ingredients-scroll"
+            className="h-39 lg:flex-1 lg:min-h-0 overflow-y-auto rounded-2xl lg:rounded-3xl p-3.5 lg:p-5 mb-4 lg:mb-6 ingredients-scroll"
             style={{ backgroundColor: "#434D2D" }}
           >
             {loading ? (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-white/80">Loading ingredients...</p>
+                <p className={`text-sm ${poppins.className}`} style={{ color: "rgba(255,255,255,0.8)" }}>
+                  Loading ingredients...
+                </p>
               </div>
             ) : filteredIngredients.length === 0 ? (
               <div className="flex h-full items-center justify-center">
-                <p className="text-sm text-white/80 text-center">
+                <p className={`text-sm text-center ${poppins.className}`} style={{ color: "rgba(255,255,255,0.8)" }}>
                   No ingredient matched &quot;{searchTerm}&quot;.
                 </p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap content-start gap-2.5 lg:gap-2.5">
                 {filteredIngredients.map((item) => {
                   const isSelected = haveIngredients.includes(item.name);
                   return (
                     <button
                       key={item.id}
                       onClick={() => toggleIngredient(item.name)}
-                      className={`px-4 py-2 rounded-full ${poppins.className} text-sm font-medium flex items-center gap-1 transition-colors cursor-pointer active:scale-95`}
+                      className={`px-3.5 py-2 lg:px-3.5 lg:py-2 rounded-lg ${poppins.className} text-sm font-medium flex items-center gap-1 transition-all cursor-pointer active:scale-95`}
                       style={
                         isSelected
                           ? { backgroundColor: "#F5FBE8", color: "#3F6212" }
                           : {
-                              backgroundColor: "rgba(255, 255, 255, 0.10)",
+                              backgroundColor: "rgba(255, 255, 255, 0.06)",
                               color: "#F5FBE8",
-                              border: "1.5px solid #F5FBE8",
+                              border: "1px solid rgba(245,251,232,0.55)",
                             }
                       }
                     >
@@ -197,10 +252,10 @@ export default function Home() {
             )}
           </div>
 
-          {/* Fixed footer zone: "have" summary + button */}
-          <footer className="flex-shrink-0 pt-1">
+          {/* Summary + CTA — anchored, never scrolls off */}
+          <footer className="flex-shrink-0 pt-1 lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-6">
             <div
-              className="relative mb-4"
+              className="relative mb-4 lg:mb-0 lg:min-w-0"
               onMouseEnter={() => setShowFullList(true)}
               onMouseLeave={() => setShowFullList(false)}
             >
@@ -225,7 +280,7 @@ export default function Home() {
 
               {showFullList && haveIngredients.length > 0 && (
                 <div
-                  className="absolute bottom-full left-0 mb-2 rounded-lg px-3 py-2 text-sm shadow-lg z-10"
+                  className="absolute bottom-full left-0 mb-2 rounded-xl px-3 py-2 text-sm shadow-lg z-10"
                   style={{ backgroundColor: "#F5FBE8", color: "#3D2E1F", width: "100%" }}
                 >
                   {haveText}
@@ -235,7 +290,7 @@ export default function Home() {
 
             <button
               onClick={handleFindUlam}
-              className={`w-full rounded-full py-4 font-bold text-white text-lg ${poppins.className} cursor-pointer active:scale-[0.98] transition-transform shadow-md`}
+              className={`w-full lg:w-auto lg:min-w-52 rounded-xl lg:rounded-2xl py-4 px-7 font-bold text-white text-lg ${poppins.className} cursor-pointer active:scale-[0.98] transition-transform shadow-md`}
               style={{ backgroundColor: "#C1603A" }}
             >
               Find my Ulam
